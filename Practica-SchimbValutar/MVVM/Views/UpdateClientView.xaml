@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="Practica_SchimbValutar.MVVM.Views.UpdateClientView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Practica_SchimbValutar.MVVM.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="200">
+    <Grid>
+        <ComboBox x:Name="BoxClient" Grid.Column="1" Width="185" Height="40" Margin="0,0,0,475" FontSize="20" FontWeight="Bold"/>
+        <Button Grid.Column="1" Width="185" Height="40" Margin="0,0,0,380" Content="Modifica" Style="{StaticResource ButtonTheme}" Click="Button_Click"/>
+
+        <TextBlock Text="Nume:" Width="185" Height="40" Margin="0,0,0,300" FontSize="20" FontWeight="Bold" Foreground="White"/>
+        <TextBox x:Name="TxtName" Width="185" Height="40" Margin="0,0,0,225" FontSize="20" FontWeight="Bold"/>
+
+        <TextBlock Text="Adresa:" Width="185" Height="40" Margin="0,0,0,125" FontSize="20" FontWeight="Bold" Foreground="White"/>
+        <TextBox x:Name="TxtAdress" Width="185" Height="40" Margin="0,0,0,50" FontSize="20" FontWeight="Bold"/>
+
+        <TextBlock Text="Telefon:" Width="185" Height="40" Margin="0,50,0,0" FontSize="20" FontWeight="Bold" Foreground="White"/>
+        <TextBox x:Name="TxtPhone" Width="185" Height="40" Margin="0,125,0,0" FontSize="20" FontWeight="Bold"/>
+
+        <TextBlock Text="Email:" Width="185" Height="40" Margin="0,225,0,0" FontSize="20" FontWeight="Bold" Foreground="White"/>
+        <TextBox x:Name="TxtEmail" Width="185" Height="40" Margin="0,300,0,0" FontSize="20" FontWeight="Bold"/>
+    </Grid>
+</UserControl>

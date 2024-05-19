@@ -1,0 +1,47 @@
+﻿<Application x:Class="Practica_SchimbValutar.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Practica_SchimbValutar"
+             xmlns:viewModel="clr-namespace:Practica_SchimbValutar.MVVM.ViewModels"
+             xmlns:view="clr-namespace:Practica_SchimbValutar.MVVM.Views"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/MenuButtonTheme.xaml"/>
+                <ResourceDictionary Source="Themes/ExitButtonTheme.xaml"/>
+                <ResourceDictionary Source="Themes/ButtonTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type viewModel:SelectViewModel}">
+                <view:SelectView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:InsertViewModel}">
+                <view:InsertView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:UpdateViewModel}">
+                <view:UpdateView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:DeleteViewModel}">
+                <view:DeleteView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:InsertClientViewModel}">
+                <view:InsertClientView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:UpdateClientViewModel}">
+                <view:UpdateClientView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModel:DeleteClientViewModel}">
+                <view:DeleteClientView/>
+            </DataTemplate>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
