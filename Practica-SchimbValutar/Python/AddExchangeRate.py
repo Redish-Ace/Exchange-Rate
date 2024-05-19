@@ -86,7 +86,7 @@ try:
     id_curr1 = ""
     id_conv1 = ""
 
-    k=1;
+    k=0;
 
     if result == 0:
         for ids1 in id_curr:
@@ -98,7 +98,7 @@ try:
                 id_conv1 = cursor.fetchone()[0]
                 #print(id_curr1 + ' ' + ids1 + ' ' + str(exch_rate[k]) + ' ' + id_conv1 + ' ' + ids2)
 
-                values.append((create_id(k), id_curr1, id_conv1, exch_rate[k]))
+                values.append((create_id(k+1), id_curr1, id_conv1, exch_rate[k]))
                 k+=1;
         cursor.executemany(insert_converter, values)
         #print("Insert Succesful")
