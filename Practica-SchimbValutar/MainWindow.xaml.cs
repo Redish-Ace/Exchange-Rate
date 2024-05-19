@@ -24,11 +24,11 @@ namespace Practica_SchimbValutar
         {
             InitializeComponent();
 
-            /*var currency = new CurrencyConversion();
+            var currency = new CurrencyConversion();
             currency.InsertCurrency();
             currency.UpdateConversion();
             DeleteLastMonth();
-            SaveExcel();*/
+            SaveExcel();
             EnableButtons();
             CreateBox();
 
