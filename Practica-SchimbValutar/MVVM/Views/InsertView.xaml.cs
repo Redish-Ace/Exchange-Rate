@@ -5,6 +5,8 @@ using System;
 using System.Data.SqlClient;
 using Practica_SchimbValutar;
 using Practica_SchimbValutar.Classes;
+using System.Security.Cryptography;
+using Microsoft.Office.Interop.Excel;
 
 namespace Practica_SchimbValutar.MVVM.Views
 {
@@ -20,7 +22,7 @@ namespace Practica_SchimbValutar.MVVM.Views
             CreateBox();
         }
 
-        private string ClientId;
+        private string ClientId = "";
 
         private void CreateBox()
         {
@@ -41,7 +43,7 @@ namespace Practica_SchimbValutar.MVVM.Views
 
                 con.Close();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -49,17 +51,17 @@ namespace Practica_SchimbValutar.MVVM.Views
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            if (CheckString.CheckText(TxtName.Text))
+            if (CheckText.CheckString(TxtName.Text))
             {
                 TxtName.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introdu numele clientului");
             }
-            if (CheckString.CheckInt(TxtSum.Text))
+            if (CheckText.CheckInt(TxtSum.Text))
             {
                 TxtSum.BorderBrush = Brushes.Red;
                 MessageBox.Show("Suma schimbata");
             }
-            if (CheckString.CheckInt(TxtPhone.Text))
+            if (CheckText.CheckInt(TxtPhone.Text))
             {
                 TxtPhone.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introduceti un numer de telefon");
@@ -67,7 +69,7 @@ namespace Practica_SchimbValutar.MVVM.Views
             if (BoxCurrencyConv.Text == string.Empty)
             {
                 BoxCurrencyConv.BorderBrush = Brushes.Red;
-                MessageBox.Show("Alege valuta convertita"); 
+                MessageBox.Show("Alege valuta convertita");
             }
             if (BoxCurrency.Text == string.Empty)
             {
@@ -75,7 +77,7 @@ namespace Practica_SchimbValutar.MVVM.Views
                 MessageBox.Show("Alege valuta");
             }
 
-            if (CheckString.CheckText(TxtName.Text) || CheckString.CheckInt(TxtPhone.Text) || CheckString.CheckInt(TxtSum.Text) || BoxCurrencyConv.Text == string.Empty || BoxCurrency.Text == string.Empty) return;
+            if (CheckText.CheckString(TxtName.Text) || CheckText.CheckInt(TxtPhone.Text) || CheckText.CheckInt(TxtSum.Text) || BoxCurrencyConv.Text == string.Empty || BoxCurrency.Text == string.Empty) return;
 
             TxtName.BorderBrush = Brushes.LightGray;
             TxtSum.BorderBrush = Brushes.LightGray;
@@ -88,40 +90,67 @@ namespace Practica_SchimbValutar.MVVM.Views
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                //make it so it doesnt work until insertClient stops
-                string query = $"exec insertTranzactii '{CreateID(con)}', '{InsertClient(TxtName.Text, Convert.ToInt32(TxtPhone.Text), con)}', '{GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con)}', {Convert.ToDouble(TxtSum.Text)}";
+                string messageBoxText = "Este un client nou?";
+                string caption = "Client Nou";
+                MessageBoxButton button = MessageBoxButton.YesNo;
+                MessageBoxImage icon = MessageBoxImage.Warning;
+                MessageBoxResult result;
 
-                SqlCommand cmd = new SqlCommand(query, con);
-                cmd.ExecuteNonQuery();
-
-                MessageBox.Show("Tranzactia a fost inregistrat");
+                result = MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                if (result == MessageBoxResult.Yes)
+                {
+                    ClientWindow client = new ClientWindow(this);
+                    client.Show();
+                }
+                else
+                {
+                    string query = $"select ID from Clienti where Telefon = {Convert.ToInt64(TxtPhone.Text)} and Nume + ' ' + Prenume = '{TxtName.Text}'";
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    if (cmd.ExecuteScalar() == null)
+                    {
+                        MessageBox.Show("Clientul nu a fost gasit");
+                    }
+                    else
+                    {
+                        ClientId = cmd.ExecuteScalar().ToString();
+                        InsertTransaction(ClientId);
+                    }
+                }
                 con.Close();
 
-                MainWindow main = new MainWindow();
-                main.LoadTransactionGrid();
+                ((MainWindow)System.Windows.Application.Current.MainWindow).LoadGrid("Transaction");
             }
-            catch(Exception ex)
+            catch (Exception ex)    
             {
                 MessageBox.Show(ex.Message);
             }
-            finally
-            {
-                TxtName.Text = string.Empty;
-                TxtPhone.Text = string.Empty;
-                TxtSum.Text = string.Empty;
-                BoxCurrencyConv.Text = string.Empty;
-                BoxCurrency.Text = string.Empty;
-            }
         }
 
-        private string CreateID(SqlConnection con)
+        private string CreateID(string table , SqlConnection con)
         {
-            string query = "select count(*) from Tranzactie";
+            string query = "";
+
+            string id = "";
+
+            switch (table)
+            {
+                case "Transaction":
+                    {
+                        query = "select count(*) from Tranzactie";
+                        id = "t";
+                    }
+                    break;
+                case "Rate":
+                    {
+                        query = "select count(*) from SchimbVechi";
+                        id = "s";
+                    }
+                    break;
+            }
             SqlCommand cmd = new SqlCommand(query, con);
             int total = Convert.ToInt32(cmd.ExecuteScalar()) + 1;
 
-            string id = "t";
-            if(total >= 1 && total <= 9)
+            if (total >= 1 && total <= 9)
             {
                 id += "00000" + total;
             }
@@ -139,7 +168,7 @@ namespace Practica_SchimbValutar.MVVM.Views
             }
             else if (total >= 10000 && total <= 99999)
             {
-                id += "0" + total ;
+                id += "0" + total;
             }
             else
             {
@@ -156,7 +185,7 @@ namespace Practica_SchimbValutar.MVVM.Views
             {
                 query = $"select ID from Schimb where ID_Valuta_Convertita = '{GetID("Valuta", condition1, null, con)}' and ID_Valuta = '{GetID("Valuta", condition2, null, con)}'";
             }
-            else if(table == "Valuta")
+            else if (table == "Valuta")
             {
                 query = $"select ID from Valuta where Cod + ': ' + Denumire = '{condition1}'";
             }
@@ -165,37 +194,40 @@ namespace Practica_SchimbValutar.MVVM.Views
             return cmd.ExecuteScalar().ToString();
         }
 
-        public string ClientID
+        public void InsertTransaction (string clientID)
         {
-            get { return ClientId; }
-            set { ClientId = value; }
-        }
-
-        private string InsertClient(string condition, long phone, SqlConnection con)
-        {
-            //create a new window to insert new client
-
-            string messageBoxText = "Este un client nou?";
-            string caption = "Client Nou";
-            MessageBoxButton button = MessageBoxButton.YesNo;
-            MessageBoxImage icon = MessageBoxImage.Warning;
-            MessageBoxResult result;
-
-            result = MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
-            if (result == MessageBoxResult.Yes)
+            try
             {
-                ClientWindow client = new ClientWindow(this);
-                client.Show();
-            }
-            else {
-                string query = $"select ID from Clienti where Telefon = {phone} and Nume + ' ' + Prenume = '{condition}'";
+                SqlConnection con = new SqlConnection(conString);
+                con.Open();
+
+                string sid = GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con);
+                string svid = CreateID("Rate", con);
+                double sum = Convert.ToDouble(TxtSum.Text);
+
+                string query = $"exec insertTranzactii '{CreateID("Transaction", con)}', '{clientID}', '{sid}', '{svid}', {sum}, null";
+
                 SqlCommand cmd = new SqlCommand(query, con);
-                return cmd.ExecuteScalar().ToString();
+                cmd.ExecuteNonQuery();
+
+                MessageBox.Show("Tranzactia a fost inregistrat");
+                con.Close();
+
+                ((MainWindow)System.Windows.Application.Current.MainWindow).LoadGrid("Transaction");
             }
-
-            while(ClientId == string.Empty) { }
-
-            return ClientId;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                MessageBox.Show("Nu s-a inregistrat tranzactia");
+            }
+            finally
+            {
+                TxtName.Text = string.Empty;
+                TxtPhone.Text = string.Empty;
+                TxtSum.Text = string.Empty;
+                BoxCurrencyConv.Text = string.Empty;
+                BoxCurrency.Text = string.Empty;
+            }
         }
     }
 }

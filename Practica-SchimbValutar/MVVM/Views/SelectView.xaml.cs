@@ -27,7 +27,20 @@ namespace Practica_SchimbValutar.MVVM.Views
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                string query = "select * from tranzactiiAzi";
+                string query = "";
+
+                if (sender.ToString().Contains("Azi"))
+                {
+                    query = "select * from tranzactiiAzi";
+                }
+                else if (sender.ToString().Contains("Avantajoase"))
+                {
+                    query = "select top 1 * from tranzactieAvantaj order by Suma_finala_lei desc";
+                }
+                else if (sender.ToString().Contains("Valuta"))
+                {
+                    query = "select * from valutaSolicitata";
+                }
 
                 SqlDataAdapter da = new SqlDataAdapter(query, con);
                 DataSet ds = new DataSet();
@@ -43,53 +56,7 @@ namespace Practica_SchimbValutar.MVVM.Views
             }
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select top 1 * from tranzactieAvantaj order by Suma_finala_lei desc";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-
-                ((MainWindow)System.Windows.Application.Current.MainWindow).DataSource = ds.Tables[0].DefaultView;
-
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from valutaSolicitata";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-
-                ((MainWindow)System.Windows.Application.Current.MainWindow).DataSource = ds.Tables[0].DefaultView;
-
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void Button_Click_3(object sender, RoutedEventArgs e)
+        private void Comision_Click(object sender, RoutedEventArgs e)
         {
             try
             {

@@ -59,16 +59,23 @@ namespace Practica_SchimbValutar.MVVM.Views
         {
             if (TxtName.Text != string.Empty || TxtPhone.Text != string.Empty || TxtAdress.Text != string.Empty || TxtEmail.Text != string.Empty)
             {
-                if (CheckString.CheckText(TxtName.Text) || CheckString.CheckInt(TxtPhone.Text) || CheckString.CheckText(TxtAdress.Text) || CheckString.CheckText(TxtEmail.Text)) return;
+                if (CheckText.CheckString(TxtName.Text) || CheckText.CheckInt(TxtPhone.Text) || CheckText.CheckString(TxtAdress.Text) || CheckText.CheckString(TxtEmail.Text)) return;
             }
             try
             {
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                string[] arr = TxtName.Text.Split(' ');
+                string[] arr = { "", "" };
+                if (TxtName.Text != string.Empty) arr = TxtName.Text.Split(' ');
 
-                string query = $"exec updateClient '{GetID(BoxClient.Text, con)}', '{arr[0]}' , '{arr[1]}', '{TxtAdress.Text}', {Convert.ToInt64(TxtPhone.Text)}, '{TxtEmail.Text}'";
+                long phone = 0;
+                if (TxtPhone.Text != string.Empty)
+                {
+                    phone = Convert.ToInt64(TxtPhone.Text);
+                }
+
+                string query = $"exec updateClienti '{GetID(BoxClient.Text, con)}', '{arr[0]}' , '{arr[1]}', '{TxtAdress.Text}', {phone}, '{TxtEmail.Text}'";
 
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.ExecuteNonQuery();
@@ -76,8 +83,7 @@ namespace Practica_SchimbValutar.MVVM.Views
                 MessageBox.Show("Clientul a fost modificat");
                 con.Close();
 
-                MainWindow main = new MainWindow();
-                main.LoadClientGrid();
+                ((MainWindow)System.Windows.Application.Current.MainWindow).LoadGrid("Client");
             }
             catch (Exception ex)
             {
@@ -87,6 +93,8 @@ namespace Practica_SchimbValutar.MVVM.Views
             {
                 TxtName.Text = string.Empty;
                 TxtPhone.Text = string.Empty;
+                TxtAdress.Text = string.Empty;
+                TxtEmail.Text = string.Empty;
             }
         }
 

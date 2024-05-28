@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using static IronPython.Modules._ast;
 
 namespace Practica_SchimbValutar.MVVM.Views
 {
@@ -60,17 +61,43 @@ namespace Practica_SchimbValutar.MVVM.Views
         {
             if (TxtName.Text != string.Empty || TxtPhone.Text != string.Empty || TxtSum.Text != string.Empty)
             {
-                if (CheckString.CheckText(TxtName.Text) || CheckString.CheckInt(TxtPhone.Text) || CheckString.CheckInt(TxtSum.Text)) return;
+                if (CheckText.CheckString(TxtName.Text) || CheckText.CheckInt(TxtPhone.Text) || CheckText.CheckInt(TxtSum.Text)) return;
             }
             try
             {
+                string name = "";
+                if (TxtName.Text != string.Empty)
+                {
+                    name = TxtName.Text;
+                }
+                string phone = "";
+                if(TxtPhone.Text != string.Empty)
+                {
+                    phone = TxtPhone.Text;
+                }
+                double sum = 0;
+                if(TxtSum.Text != string.Empty)
+                {
+                    sum = Convert.ToDouble(TxtSum.Text);
+                }
+
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                string query = $"select * from getTranzactii('{GetID("Clienti", TxtName.Text, TxtPhone.Text, con)}', '{GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con)}', '{Convert.ToDouble(TxtSum.Text)}')";
+                string query = $"select * from getTranzactii('{GetID("Clienti", name, phone, con)}', '{GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con)}', {sum}, null)";
 
                 SqlCommand cmd = new SqlCommand(query, con);
+                if (cmd.ExecuteScalar() == null)
+                {
+                    MessageBox.Show("Nu s-a gasit tranzactia");
+                    return;
+                }
                 string id = cmd.ExecuteScalar().ToString();
+
+                query = $"exec deleteSchimbV '{id}'";
+
+                cmd = new SqlCommand(query, con);
+                cmd.ExecuteNonQuery();
 
                 query = $"delete from Tranzactie where ID = '{id}'";
 
@@ -80,8 +107,7 @@ namespace Practica_SchimbValutar.MVVM.Views
                 MessageBox.Show("Tranzactia a fost stearsa");
                 con.Close();
 
-                MainWindow main = new MainWindow();
-                main.LoadTransactionGrid();
+                ((MainWindow)System.Windows.Application.Current.MainWindow).LoadGrid("Transaction");
             }
             catch (Exception ex)
             {
@@ -99,10 +125,11 @@ namespace Practica_SchimbValutar.MVVM.Views
 
         private string GetID(string table, string condition1, string condition2, SqlConnection con)
         {
+            if (condition1 == "") { return ""; }
             string query = "";
             if (table == "Schimb")
             {
-                query = $"select ID from Schimb where ID_Valuta_Convertita = '{GetID("Valuta", condition1, null, con)}' and ID_Valuta = '{GetID("Valuta", condition2, null, con)}'";
+                query = $"select ID from SchimbVechi where ID_Valuta_Convertita = '{GetID("Valuta", condition1, null, con)}' and ID_Valuta = '{GetID("Valuta", condition2, null, con)}'";
             }
             else if (table == "Valuta")
             {
@@ -114,6 +141,11 @@ namespace Practica_SchimbValutar.MVVM.Views
             }
 
             SqlCommand cmd = new SqlCommand(query, con);
+            if(cmd.ExecuteScalar() == null)
+            {
+                MessageBox.Show("Nu s-a gasit tranzactia");
+                return "";
+            }
             return cmd.ExecuteScalar().ToString();
         }
     }

@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Practica_SchimbValutar.Classes;
+using System.Security.Cryptography;
 
 namespace Practica_SchimbValutar.MVVM.Views
 {
@@ -68,7 +69,7 @@ namespace Practica_SchimbValutar.MVVM.Views
         {
             if (TxtName.Text != string.Empty || TxtPhone.Text != string.Empty || TxtSum.Text != string.Empty)
             {
-                if (CheckString.CheckText(TxtName.Text) || CheckString.CheckInt(TxtPhone.Text) || CheckString.CheckInt(TxtSum.Text)) return;
+                if (CheckText.CheckString(TxtName.Text) || CheckText.CheckInt(TxtPhone.Text) || CheckText.CheckInt(TxtSum.Text)) return;
             }
 
             try
@@ -76,7 +77,13 @@ namespace Practica_SchimbValutar.MVVM.Views
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                string query = $"exec updateTranzactii '{BoxTransaction.Text}', '{GetID("Clienti",TxtName.Text, TxtPhone.Text, con)}', '{GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con)}', {Convert.ToDouble(TxtSum.Text)}";
+                double sum = 0;
+                if(TxtSum.Text != string.Empty)
+                {
+                    sum = Convert.ToDouble(TxtSum.Text);
+                }
+
+                string query = $"exec updateTranzactii '{BoxTransaction.Text}', '{GetID("Clienti",TxtName.Text, TxtPhone.Text, con)}', '{GetID("Schimb", BoxCurrencyConv.Text, BoxCurrency.Text, con)}', '{CreateID("Rate", con)}', {sum}";
 
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.ExecuteNonQuery();
@@ -84,8 +91,7 @@ namespace Practica_SchimbValutar.MVVM.Views
                 MessageBox.Show("Tranzactia a fost modificata");
                 con.Close();
 
-                MainWindow main = new MainWindow();
-                main.LoadTransactionGrid();
+                ((MainWindow)System.Windows.Application.Current.MainWindow).LoadGrid("Transaction");
             }
             catch (Exception ex)
             {
@@ -103,6 +109,7 @@ namespace Practica_SchimbValutar.MVVM.Views
 
         private string GetID(string table, string condition1, string condition2, SqlConnection con)
         {
+            if (condition1 == "") return "";
             string query = "";
             if (table == "Schimb")
             {
@@ -118,7 +125,57 @@ namespace Practica_SchimbValutar.MVVM.Views
             }
 
             SqlCommand cmd = new SqlCommand(query, con);
+            if (cmd.ExecuteScalar() == null)
+            {
+                return "";
+            }
             return cmd.ExecuteScalar().ToString();
+        }
+
+        private string CreateID(string table, SqlConnection con)
+        {
+            string query = "";
+
+            string id = "";
+
+            switch (table)
+            {
+                case "Rate":
+                    {
+                        query = "select count(*) from SchimbVechi";
+                        id = "s";
+                    }
+                    break;
+            }
+            SqlCommand cmd = new SqlCommand(query, con);
+            int total = Convert.ToInt32(cmd.ExecuteScalar()) + 1;
+
+            if (total >= 1 && total <= 9)
+            {
+                id += "00000" + total;
+            }
+            else if (total >= 10 && total <= 99)
+            {
+                id += "0000" + total;
+            }
+            else if (total >= 100 && total <= 999)
+            {
+                id += "000" + total;
+            }
+            else if (total >= 1000 && total <= 9999)
+            {
+                id += "00" + total;
+            }
+            else if (total >= 10000 && total <= 99999)
+            {
+                id += "0" + total;
+            }
+            else
+            {
+                id += total;
+            }
+
+            return id;
         }
     }
 }

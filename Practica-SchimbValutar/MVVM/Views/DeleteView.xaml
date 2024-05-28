@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="200">
     <Grid>
-        <Button Grid.Column="1" Width="185" Height="40" Margin="0,0,0,450" FontSize="20" Content="Sterge" FontWeight="Bold" Style="{StaticResource ButtonTheme}"/>
+        <Button Grid.Column="1" Width="185" Height="40" Margin="0,0,0,450" FontSize="20" Content="Sterge" FontWeight="Bold" Style="{StaticResource ButtonTheme}" Click="Button_Click"/>
 
         <TextBlock Text="Nume Client:" Width="185" Height="40" Margin="0,0,0,350" FontSize="20" FontWeight="Bold" Foreground="White"/>
         <TextBox x:Name="TxtName" Width="185" Height="40" Margin="0,0,0,275" FontSize="20" FontWeight="Bold"/>
