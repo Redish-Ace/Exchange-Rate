@@ -11,6 +11,11 @@ using System.IO;
 using System.Xml.Serialization;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Windows.Controls;
+using System.Security.Cryptography;
+using System.Globalization;
+using Microsoft.VisualBasic;
+using System.Linq;
 
 namespace Practica_SchimbValutar
 {
@@ -20,6 +25,9 @@ namespace Practica_SchimbValutar
     public partial class MainWindow : Window
     {
         readonly string conString = "Data Source=DESKTOP-N5UB5V3\\SQLEXPRESS;Initial Catalog=Schimb_Valutar;Integrated Security=True;Encrypt=False";
+
+        readonly string[] codes = { "CPIND", "VVWAS", "HYQOM", "FXCYU", "LXNZN", "PWARW", "POQTC", "LIKWI", "LJQUM", "GHPYL" };
+
         public MainWindow()
         {
             InitializeComponent();
@@ -27,12 +35,13 @@ namespace Practica_SchimbValutar
             var currency = new CurrencyConversion();
             currency.InsertCurrency();
             currency.UpdateConversion();
+
             DeleteLastMonth();
             SaveExcel();
             EnableButtons();
             CreateBox();
 
-            LoadGrid();
+            LoadGrid("Rate");
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -49,33 +58,54 @@ namespace Practica_SchimbValutar
         {
             if(BlockLogin.Text == "USER")
             {
-                RadioInsert.IsEnabled = false;
-                RadioUpdate.IsEnabled = false;
-                RadioDelete.IsEnabled = false;
+                RadioInsertTransaction.IsEnabled = false;
+                RadioUpdateTransaction.IsEnabled = false;
+                RadioDeleteTransaction.IsEnabled = false;
                 RadioInsertClient.IsEnabled = false;
                 RadioUpdateClient.IsEnabled = false;
                 RadioDeleteClient.IsEnabled = false;
             }
             else
             {
-                RadioInsert.IsEnabled = true;
-                RadioUpdate.IsEnabled = true;
-                RadioDelete.IsEnabled = true;
+                RadioInsertTransaction.IsEnabled = true;
+                RadioUpdateTransaction.IsEnabled = true;
+                RadioDeleteTransaction.IsEnabled = true;
                 RadioInsertClient.IsEnabled = true;
                 RadioUpdateClient.IsEnabled = true;
                 RadioDeleteClient.IsEnabled = true;
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private bool CheckCode(string code)
         {
+            for (int i = 0; i < codes.Length; i++)
+            {
+                if (codes[i] == code)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            string code = Interaction.InputBox("Introduceti codul de verificare", "Cod de verificare", "");
+
+            if (!CheckCode(code)) 
+            {
+                MessageBox.Show("Nu sunteti un angajat");
+                return;
+            }
+
             LoginWindow loginWindow = new LoginWindow(this);
             loginWindow.Show();
 
             if (sender.ToString().Contains("Login"))
             {
                 loginWindow.LoginBtn.Visibility = Visibility.Visible;
-            
+
+                loginWindow.SignBtn.Visibility = Visibility.Hidden;
                 loginWindow.BlockEmail.Visibility = Visibility.Hidden;
                 loginWindow.TxtEmail.Visibility = Visibility.Hidden;
                 loginWindow.BlockPassConfirm.Visibility = Visibility.Hidden;
@@ -93,8 +123,8 @@ namespace Practica_SchimbValutar
                 loginWindow.TxtPassConfirm.Visibility = Visibility.Visible;
                 loginWindow.BlockVerif.Visibility = Visibility.Visible;
                 loginWindow.TxtVerification.Visibility = Visibility.Visible;
-                loginWindow.SignBtn.Visibility = Visibility.Visible;
                 loginWindow.TxtPassConfirm.Visibility = Visibility.Visible;
+                loginWindow.SignBtn.Visibility = Visibility.Visible;
 
                 loginWindow.LoginBtn.Visibility = Visibility.Hidden;
             }
@@ -175,7 +205,7 @@ namespace Practica_SchimbValutar
                 this.DragMove();
         }
 
-        public void LoadGrid()
+        public void LoadGrid(string table)
         {
             try
             {
@@ -184,60 +214,23 @@ namespace Practica_SchimbValutar
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                string query = "select * from getRate";
+                string query = "";
+
+                switch (table)
+                {
+                    case "Rate": query = "select * from getRate";
+                        break;
+                    case "Transaction" +
+                    "": query = "select * from tranzactieAvantaj";
+                        break;
+                    case "Client": query = "select * from Clienti";
+                        break;
+                }
 
                 SqlDataAdapter da = new SqlDataAdapter(query, con);
                 DataSet ds = new DataSet();
                 da.Fill(ds);
                 OutputGrid.ItemsSource = ds.Tables[0].DefaultView;
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        public void LoadTransactionGrid()
-        {
-
-            try
-            {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from tranzactii";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-
-                OutputGrid.ItemsSource = ds.Tables[0].DefaultView;
-
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        public void LoadClientGrid()
-        {
-
-            try
-            {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from Clienti";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-
-                OutputGrid.ItemsSource = ds.Tables[0].DefaultView;
-
                 con.Close();
             }
             catch (Exception ex)
@@ -256,7 +249,7 @@ namespace Practica_SchimbValutar
             Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
             if (xlApp == null)
             {
-                MessageBox.Show("Excel is not properly installed!!");
+                MessageBox.Show("Excel nu este instalat");
                 return;
             }
             Excel.Workbook xlWorkBook;
@@ -314,68 +307,21 @@ namespace Practica_SchimbValutar
 
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            try
+            string name = sender.ToString();
+            if (name.Contains("Schimb"))
             {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from getRate";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-                OutputGrid.ItemsSource = ds.Tables[0].DefaultView;
-
-                con.Close();
+                LoadGrid("Rate");
+                return;
             }
-            catch (Exception ex)
+            if (name.Contains("Transaction"))
             {
-                MessageBox.Show(ex.Message);
+                LoadGrid("Transaction");
+                return;
             }
-        }
-
-        private void RadioButton_Checked_2(object sender, RoutedEventArgs e)
-        {
-            try
+            if (name.Contains("Client"))
             {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from Clienti";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-                OutputGrid.ItemsSource = ds.Tables[0].DefaultView;
-
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void RadioButton_Checked_1(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                SqlConnection con = new SqlConnection(conString);
-                con.Open();
-
-                string query = "select * from tranzactii";
-
-                SqlDataAdapter da = new SqlDataAdapter(query, con);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-
-                ((MainWindow)System.Windows.Application.Current.MainWindow).DataSource = ds.Tables[0].DefaultView;
-
-                con.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+                LoadGrid("Client");
+                return;
             }
         }
 
@@ -388,9 +334,28 @@ namespace Practica_SchimbValutar
 
                 DateTime today = DateTime.Today;
                 DateTime month = new DateTime(today.Year, today.Month, 1);
-                string query = $"exec deleteTranzactii null, null, null, 0,'{month}'";
+
+                string query = $"select ID from Tranzactie where Data_tranz < '{month}'";
                 SqlCommand cmd = new SqlCommand(query, con);
+                SqlDataReader sdr = cmd.ExecuteReader();
+
+                List<string> ids = new List<string>();
+                while (sdr.Read())
+                {
+                    ids.Add(sdr.GetValue(0).ToString());
+                }
+                sdr.Close();
+
+                query = $"delete from Tranzactie where Data_tranz < '{month}'";
+                cmd = new SqlCommand(query, con);
                 cmd.ExecuteNonQuery();
+
+                foreach(string id in ids)
+                {
+                    query = $"exec deleteSchimbV {id}";
+                    cmd = new SqlCommand(query, con);
+                    cmd.ExecuteNonQuery();
+                }
 
                 con.Close();
             }
@@ -415,6 +380,7 @@ namespace Practica_SchimbValutar
                     BoxCurrencyConv.Items.Add(sdr.GetValue(0));
                     BoxCurrency.Items.Add(sdr.GetValue(0));
                 }
+                sdr.Close();
 
                 con.Close();
             }
@@ -424,9 +390,9 @@ namespace Practica_SchimbValutar
             }
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void Conversion_Click(object sender, RoutedEventArgs e)
         {
-            if (CheckString.CheckInt(TxtSum.Text)) { 
+            if (CheckText.CheckInt(TxtSum.Text)) { 
                 MessageBox.Show("Introdu o suma de bani, nu alte caractere");
                 BoxCurrencyConv.Text = string.Empty;
                 BoxCurrency.Text = string.Empty;
@@ -439,14 +405,11 @@ namespace Practica_SchimbValutar
                 SqlConnection con = new SqlConnection(conString);
                 con.Open();
 
-                DateTime today = DateTime.Today;
-                DateTime month = new DateTime(today.Year, today.Month, 1);
                 string query = $"select Schimb from getRate where Valuta_Convertita = '{BoxCurrencyConv.Text}' and Valuta = '{BoxCurrency.Text}'";
                 SqlCommand cmd = new SqlCommand(query, con);
                 
                 double schimb = Convert.ToDouble(cmd.ExecuteScalar());
 
-                
                 BlockResult.Text = (Convert.ToDouble(TxtSum.Text) * schimb).ToString();
 
                 con.Close();

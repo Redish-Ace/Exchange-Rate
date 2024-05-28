@@ -51,7 +51,6 @@ namespace Practica_SchimbValutar
 
             try
             {
-                //lilianginga86@gmail.com
                 MailMessage mailMessage = new MailMessage
                 {
                     From = new MailAddress("MS_rYxDnR@trial-z3m5jgrq3xoldpyo.mlsender.net"),
@@ -131,13 +130,13 @@ namespace Practica_SchimbValutar
                 {
                     TxtEmail.BorderBrush = Brushes.Red;
                     MessageBox.Show("Emailul este deja folosit");
-                    break;
+                    return;
                 }
                 if(user.Name.ToString() == TxtName.Text)
                 {
                     TxtName.BorderBrush = Brushes.Red;
                     MessageBox.Show("Numele este deja folosit, introduceti un nume diferit");
-                    break;
+                    return;
                 }
             }
             SendCode(TxtEmail.Text);
@@ -193,6 +192,21 @@ namespace Practica_SchimbValutar
 
         private void LoginBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (TxtPass.Password == string.Empty)
+            {
+                TxtPass.BorderBrush = Brushes.Red;
+                MessageBox.Show("Introdu parola");
+                return;
+            }
+            TxtPass.BorderBrush = Brushes.LightGray;
+
+            if (TxtName.Text == string.Empty)
+            {
+                TxtName.BorderBrush = Brushes.Red;
+                MessageBox.Show("Introduceti Numele");
+                return;
+            }
+            TxtName.BorderBrush = Brushes.LightGray;
             try
             {
                 string password = "bank";

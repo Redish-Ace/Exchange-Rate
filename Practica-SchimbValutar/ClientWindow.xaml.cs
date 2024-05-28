@@ -30,7 +30,7 @@ namespace Practica_SchimbValutar
             InitializeComponent();
             this.insertView = window;
 
-            if(insertView.TxtName.Text != string.Empty)
+            if (insertView.TxtName.Text != string.Empty)
             {
                 TxtName.Text = insertView.TxtName.Text;
             }
@@ -58,33 +58,33 @@ namespace Practica_SchimbValutar
 
         private void BtnInsert_Click(object sender, RoutedEventArgs e)
         {
-            if (CheckString.CheckInt(TxtIDNP.Text))
+            if (CheckText.CheckInt(TxtIDNP.Text))
             {
                 TxtIDNP.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introdu IDNP-ul clientului");
             }
-            if (CheckString.CheckText(TxtName.Text))
+            if (CheckText.CheckString(TxtName.Text))
             {
                 TxtName.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introdu numele clientului");
             }
-            if (CheckString.CheckText(TxtAdress.Text))
+            if (CheckText.CheckString(TxtAdress.Text))
             {
                 TxtAdress.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introdu o adresa");
             }
-            if (CheckString.CheckInt(TxtPhone.Text))
+            if (CheckText.CheckInt(TxtPhone.Text))
             {
                 TxtPhone.BorderBrush = Brushes.Red;
                 MessageBox.Show("Introduceti un numer de telefon");
             }
-            if (CheckString.CheckText(TxtEmail.Text))
+            if (CheckText.CheckString(TxtEmail.Text))
             {
                 TxtEmail.BorderBrush = Brushes.Red;
                 MessageBox.Show("Alege valuta convertita");
             }
 
-            if (CheckString.CheckInt(TxtIDNP.Text) || CheckString.CheckText(TxtName.Text) || CheckString.CheckText(TxtAdress.Text) || CheckString.CheckInt(TxtPhone.Text) || CheckString.CheckText(TxtEmail.Text)) return;
+            if (CheckText.CheckInt(TxtIDNP.Text) || CheckText.CheckString(TxtName.Text) || CheckText.CheckString(TxtAdress.Text) || CheckText.CheckInt(TxtPhone.Text) || CheckText.CheckString(TxtEmail.Text)) return;
 
             TxtIDNP.BorderBrush = Brushes.LightGray;
             TxtName.BorderBrush = Brushes.LightGray;
@@ -117,7 +117,7 @@ namespace Practica_SchimbValutar
             }
             finally
             {
-                insertView.ClientID = id;
+                insertView.InsertTransaction(id);
 
                 TxtIDNP.Text = string.Empty;
                 TxtName.Text = string.Empty;
