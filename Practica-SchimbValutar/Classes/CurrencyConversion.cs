@@ -5,10 +5,7 @@ using System.Data.SqlClient;
 using System.Windows;
 using System.Collections.Generic;
 using System.Threading;
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
 using System.Diagnostics;
-using System.Data;
 
 namespace Practica_SchimbValutar.Classes
 {
@@ -28,43 +25,6 @@ namespace Practica_SchimbValutar.Classes
 
         readonly string  url = $"https://api.currencyfreaks.com/v2.0/rates/latest?apikey={apiKey}";
 
-        private dynamic GetRates()
-        {
-            int retryCount = 0;
-            const int maxRetries = 10;
-
-            while (retryCount < maxRetries)
-            {
-                try
-                {
-                    using (HttpClient client = new HttpClient())
-                    {
-                        HttpResponseMessage response = client.GetAsync(url).Result;
-                        response.EnsureSuccessStatusCode();
-                        string responseBody = response.Content.ReadAsStringAsync().Result;
-
-                        dynamic data = JsonConvert.DeserializeObject(responseBody);
-
-                        dynamic exchangeRates = data.rates;
-                        return exchangeRates;
-                    }
-                }
-                catch (HttpRequestException e)
-                {
-                    retryCount++;
-                    if (retryCount < maxRetries)
-                    {
-                        Console.WriteLine($"Request failed with status code {e.Message}. Retrying in {Math.Pow(2, retryCount)} seconds...");
-                        Thread.Sleep(Convert.ToInt32(Math.Pow(2, retryCount) * 1000));
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-            return "";
-        }
 
         public void InsertCurrency()
         {
@@ -79,7 +39,7 @@ namespace Practica_SchimbValutar.Classes
                 {
                     foreach (var currency in currencyIso)
                     {
-                        query = $"insert into Valuta (ID, Cod, Denumire) values('{CreateID("Valuta", con)}','{currency.Key}', '{currency.Value}')";
+                        query = $"insert into Valuta (ID, Cod, Denumire) values('{CreateID(con)}','{currency.Key}', '{currency.Value}')";
                         command = new SqlCommand(query, con);
                         command.ExecuteNonQuery();
                     }
@@ -94,71 +54,33 @@ namespace Practica_SchimbValutar.Classes
             }
         }
 
-        private string CreateID(string table ,SqlConnection conn)
+        private string CreateID( SqlConnection conn)
         {
             try
             {
-                string query = "";
-                if (table == "Valuta")
-                {
-                    query = "select count(ID) from Valuta";
-                }
-                else if (table == "Schimb")
-                {
-                    query = "select count(ID) from Schimb";
-                }
+                string query  = "select count(ID) from Valuta";
+                
                 SqlCommand cmd = new SqlCommand(query, conn);
                 string id;
 
                 int count = Convert.ToInt32(cmd.ExecuteScalar()) + 1;
-
-                string letter = "";
-                if (table == "Valuta") letter = "v";
-                else if (table == "Schimb") letter = "s";
                 
                 if (count >= 1 && count <= 9)
                 {
-                    id = letter + "00" + count;
+                    id = "v00" + count;
                 }
                 else if (count >= 10 && count <= 99)
                 {
-                    id = letter + "0" + count;
+                    id = "v0" + count;
                 }
                 else
                 {
-                    id = letter + count;
+                    id = "v" + count;
                 }
 
                 return id;
             }
             catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            return "";
-        }
-
-        private string GetID(string table, SqlConnection conn, string condition1, string condition2)
-        {
-            try
-            {
-                string query = "";
-                if (table == "Valuta")
-                {
-                    query = $"select ID from Valuta where Cod = '{condition1}'";
-                }
-                else if (table == "Schimb")
-                {
-                    query = $"select ID from Schimb where ID_Valuta_Convertita = '{condition1}' AND ID_Valuta = '{condition2}'";
-                }
-                SqlCommand cmd = new SqlCommand(query, conn);
-                string id = "";
-
-                id = cmd.ExecuteScalar().ToString();
-
-                return id;
-            }
-            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -179,14 +101,6 @@ namespace Practica_SchimbValutar.Classes
             Process process = new Process { StartInfo = startInfo };
             process.Start();
             process.WaitForExit();
-        }
-
-        private double GetConversion(string code, string code2, dynamic rates)
-        {
-            float originalAmount = 1 / (float)rates[code];
-            float convertedAmount = originalAmount * (float)rates[code2];
-
-            return convertedAmount;
         }
     }
 }
