@@ -12,4 +12,17 @@ insert into Clienti
 		   ('c000009', 6667778889993, 'Gheorghe', 'Andreea', 'Aleea Trandafirilor nr. 6', 66777888, 'andreea@example.com'),
 		   ('c000010', 8889990001117, 'Dobre', 'Alexandru', 'Calea Dorobanților nr. 15', 88999000, 'alexandru@example.com');
 go
-exec insertTranzactii 't000001', 'c000001', 's001', 100
+select * from Schimb
+set dateformat dmy
+go
+delete from Tranzactie
+go
+insert into Tranzactie
+	values ('t000001', 'c000010', 's059', 100, '10-05-2024'),
+	('t000002', 'c000002', 's001', 150, '01-05-2024'),
+	('t000003', 'c000005', 's060', 900, '16-05-2024'),
+	('t000004', 'c000001', 's009', 50, '26-05-2024'),
+	('t000005', 'c000007', 's035', 1250, '20-05-2024'),
+	('t000006', 'c000009', 's021', 120, '12-05-2024')
+go
+select * from Tranzactie

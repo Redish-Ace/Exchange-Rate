@@ -19,27 +19,12 @@ create table Valuta(
 	Denumire nvarchar(100)
 )
 go
---delete from Valuta
---go
-delete from Schimb
---go
-select * from Valuta
-go
-select * from Schimb
-go
---go
---drop table Tranzactie
---go
---drop table Schimb
---go
 create table Schimb(
 	ID nvarchar(7) primary key,
 	ID_Valuta_Convertita nvarchar(4) foreign key references Valuta(ID) on delete cascade,
 	Schimb money,
 	ID_Valuta nvarchar(4)
 )
-go
-select * from Clienti
 go
 create table Clienti(
 	ID nvarchar(7) primary key,
@@ -51,12 +36,17 @@ create table Clienti(
 	Email nvarchar(50) unique
 );
 go
+create table SchimbVechi(
+	ID nvarchar(7) primary key,
+	Valuta_Convertita nvarchar(100),
+	Schimb money,
+	Valuta nvarchar(100)
+)
+go
 create table Tranzactie(
 	ID nvarchar(7) primary key,
 	ID_Client nvarchar(7) foreign key references Clienti(ID) on delete cascade,
-	ID_Schimb nvarchar(7) foreign key references Schimb(ID) on delete cascade,
+	ID_Schimb nvarchar(7) foreign key references SchimbVechi(ID) on delete cascade,
 	Suma money,
 	Data_tranz date
 );
-go
-select * from Tranzactie
